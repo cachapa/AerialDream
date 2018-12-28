@@ -8,6 +8,7 @@ import android.view.TextureView;
 import android.widget.MediaController;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
+import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -26,11 +27,10 @@ import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.upstream.cache.CacheDataSourceFactory;
 import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor;
 import com.google.android.exoplayer2.upstream.cache.SimpleCache;
+import com.google.android.exoplayer2.video.VideoListener;
 
-public class ExoPlayerView extends TextureView implements MediaController.MediaPlayerControl, SimpleExoPlayer.VideoListener, ExoPlayer.EventListener {
+public class ExoPlayerView extends TextureView implements MediaController.MediaPlayerControl, VideoListener, Player.EventListener {
     public static final long DURATION = 5000;
-
-    private static final long GB_IN_BYTES = 1073741824;
 
     private SimpleExoPlayer player;
     private MediaSource mediaSource;
@@ -38,7 +38,6 @@ public class ExoPlayerView extends TextureView implements MediaController.MediaP
     private Handler handler;
     private float aspectRatio;
     private boolean prepared;
-    private long cacheSize;
 
     public ExoPlayerView(Context context) {
         this(context, null);
@@ -52,7 +51,7 @@ public class ExoPlayerView extends TextureView implements MediaController.MediaP
         }
 
         handler = new Handler();
-        player = ExoPlayerFactory.newSimpleInstance(context, new DefaultTrackSelector(), new DefaultLoadControl());
+        player = ExoPlayerFactory.newSimpleInstance(context, new DefaultRenderersFactory(context), new DefaultTrackSelector(), new DefaultLoadControl());
 
         player.setVideoTextureView(this);
         player.addVideoListener(this);
@@ -60,11 +59,7 @@ public class ExoPlayerView extends TextureView implements MediaController.MediaP
     }
 
     public void setCacheSize(int cacheSize) {
-        if (cacheSize < 0) {
-            this.cacheSize = Long.MAX_VALUE;
-        } else {
-            this.cacheSize = cacheSize * GB_IN_BYTES;
-        }
+        VideoCache.setCacheSize(cacheSize);
     }
 
     public void setUri(Uri uri) {
@@ -75,15 +70,15 @@ public class ExoPlayerView extends TextureView implements MediaController.MediaP
         player.stop();
         prepared = false;
         if (mediaSource != null) {
-            mediaSource.releaseSource();
+            mediaSource.releaseSource(null);
         }
 
         DefaultHttpDataSourceFactory httpDataSourceFactory = new DefaultHttpDataSourceFactory("Aerial Dream");
-        DataSource.Factory dataSourceFactory = cacheSize > 0
-                ? new CacheDataSourceFactory(new SimpleCache(getContext().getCacheDir(), new LeastRecentlyUsedCacheEvictor(cacheSize)), httpDataSourceFactory, 0)
+        DataSource.Factory dataSourceFactory = VideoCache.getCacheSize() > 0
+                ? new CacheDataSourceFactory(VideoCache.getInstance(getContext()), httpDataSourceFactory, 0)
                 : httpDataSourceFactory;
 
-        mediaSource = new ExtractorMediaSource(uri, dataSourceFactory, new DefaultExtractorsFactory(), handler, null);
+        mediaSource = new ExtractorMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
         player.prepare(mediaSource);
     }
 
@@ -198,10 +193,6 @@ public class ExoPlayerView extends TextureView implements MediaController.MediaP
     }
 
     @Override
-    public void onTimelineChanged(Timeline timeline, Object manifest) {
-    }
-
-    @Override
     public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
     }
 
@@ -257,5 +248,35 @@ public class ExoPlayerView extends TextureView implements MediaController.MediaP
         void onAlmostFinished(ExoPlayerView view);
 
         void onPrepared(ExoPlayerView view);
+    }
+}
+
+class VideoCache {
+    private static final long GB_IN_BYTES = 1073741824;
+
+    private static SimpleCache sDownloadCache;
+    private static long cacheSize;
+
+    public static void setCacheSize(int cacheSize) {
+        if (sDownloadCache != null) {
+            sDownloadCache.release();
+            sDownloadCache = null;
+        }
+
+        if (cacheSize < 0) {
+            VideoCache.cacheSize = Long.MAX_VALUE;
+        } else {
+            VideoCache.cacheSize = cacheSize * GB_IN_BYTES;
+        }
+    }
+
+    public static long getCacheSize() {
+        return cacheSize;
+    }
+
+    public static SimpleCache getInstance(Context context) {
+        //if (sDownloadCache == null) sDownloadCache = new SimpleCache(new File(getCacheDir(), "exoCache"), new NoOpCacheEvictor());
+        if (sDownloadCache == null) sDownloadCache = new SimpleCache(context.getCacheDir(), new LeastRecentlyUsedCacheEvictor(cacheSize));
+        return sDownloadCache;
     }
 }
