@@ -2,7 +2,7 @@ package com.codingbuffalo.aerialdream;
 
 import android.content.Context;
 import android.net.Uri;
-import android.os.Handler;
+import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.TextureView;
 import android.widget.MediaController;
@@ -10,7 +10,6 @@ import android.widget.MediaController;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
@@ -35,7 +34,6 @@ public class ExoPlayerView extends TextureView implements MediaController.MediaP
     private SimpleExoPlayer player;
     private MediaSource mediaSource;
     private OnPlayerEventListener listener;
-    private Handler handler;
     private float aspectRatio;
     private boolean prepared;
 
@@ -50,7 +48,6 @@ public class ExoPlayerView extends TextureView implements MediaController.MediaP
             return;
         }
 
-        handler = new Handler();
         player = ExoPlayerFactory.newSimpleInstance(context, new DefaultRenderersFactory(context), new DefaultTrackSelector(), new DefaultLoadControl());
 
         player.setVideoTextureView(this);
@@ -69,16 +66,15 @@ public class ExoPlayerView extends TextureView implements MediaController.MediaP
 
         player.stop();
         prepared = false;
-        if (mediaSource != null) {
-            mediaSource.releaseSource(null);
-        }
 
         DefaultHttpDataSourceFactory httpDataSourceFactory = new DefaultHttpDataSourceFactory("Aerial Dream");
         DataSource.Factory dataSourceFactory = VideoCache.getCacheSize() > 0
                 ? new CacheDataSourceFactory(VideoCache.getInstance(getContext()), httpDataSourceFactory, 0)
                 : httpDataSourceFactory;
 
-        mediaSource = new ExtractorMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
+        mediaSource = new ExtractorMediaSource.Factory(dataSourceFactory)
+                .setExtractorsFactory(new DefaultExtractorsFactory())
+                .createMediaSource(uri);
         player.prepare(mediaSource);
     }
 

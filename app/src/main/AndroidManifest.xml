@@ -19,11 +19,12 @@
         android:installLocation="auto"
         android:label="@string/daydream_name"
         android:supportsRtl="true"
-        android:theme="@style/DaydreamTheme">
+        android:theme="@style/DaydreamTheme"
+        android:usesCleartextTraffic="true">
 
         <activity
             android:name=".SettingsActivity"
-            android:banner="@mipmap/ic_launcher"
+            android:banner="@drawable/ic_banner"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:theme="@style/SettingsTheme">
             <intent-filter>
