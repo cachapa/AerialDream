@@ -1,7 +1,7 @@
 package com.codingbuffalo.aerialdream.data;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.codingbuffalo.aerialdream.data.protium.Interactor;
 import com.codingbuffalo.aerialdream.data.protium.ValueTask;
