@@ -70,7 +70,7 @@ dependencies {
 preBuild.doFirst {
     // Fetch playlist files
     exec {
-        executable "../fetch_playlists.sh"
+        executable "./fetch_playlists.sh"
     }
 }
 
