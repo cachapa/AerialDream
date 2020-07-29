@@ -38,7 +38,8 @@
 
         <activity
             android:name=".TestActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize" />
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:exported="true" />
 
         <service
             android:name=".AerialDream"
