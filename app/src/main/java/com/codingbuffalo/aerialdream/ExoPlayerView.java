@@ -4,7 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 import androidx.annotation.Nullable;
 import android.util.AttributeSet;
-import android.view.TextureView;
+import android.view.SurfaceView;
 import android.widget.MediaController;
 
 import com.google.android.exoplayer2.ExoPlaybackException;
@@ -25,7 +25,7 @@ import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvicto
 import com.google.android.exoplayer2.upstream.cache.SimpleCache;
 import com.google.android.exoplayer2.video.VideoListener;
 
-public class ExoPlayerView extends TextureView implements MediaController.MediaPlayerControl, VideoListener, Player.EventListener {
+public class ExoPlayerView extends SurfaceView implements MediaController.MediaPlayerControl, VideoListener, Player.EventListener {
     public static final long DURATION = 5000;
 
     private static final long GB_IN_BYTES = 1073741824;
@@ -50,7 +50,7 @@ public class ExoPlayerView extends TextureView implements MediaController.MediaP
 
         player = ExoPlayerFactory.newSimpleInstance(context);
 
-        player.setVideoTextureView(this);
+        player.setVideoSurfaceView(this);
         player.addVideoListener(this);
         player.addListener(this);
     }

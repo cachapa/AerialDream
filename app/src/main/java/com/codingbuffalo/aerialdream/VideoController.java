@@ -8,7 +8,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
-
 import com.codingbuffalo.aerialdream.data.Apple2015Video;
 import com.codingbuffalo.aerialdream.data.Apple2017Video;
 import com.codingbuffalo.aerialdream.data.Apple2018Video;
@@ -55,10 +54,8 @@ public class VideoController implements VideoInteractor.Listener, ExoPlayerView.
         binding.setCacheSize(cacheSize);
 
         binding.videoView0.setController(binding.videoView0.videoView);
-        binding.videoView1.setController(binding.videoView1.videoView);
 
         binding.videoView0.videoView.setOnPlayerListener(this);
-        binding.videoView1.videoView.setOnPlayerListener(this);
 
         new VideoInteractor(
                 context,
@@ -75,45 +72,16 @@ public class VideoController implements VideoInteractor.Listener, ExoPlayerView.
     }
 
     public void start() {
-        binding.videoView0.getRoot().setAlpha(0);
-
-        loadVideo(binding.videoView0, getVideo());
-        loadVideo(binding.videoView1, getVideo());
-
-        binding.videoView1.videoView.start();
+        playVideo(binding.videoView0);
     }
 
     public void stop() {
         binding.videoView0.videoView.release();
-        binding.videoView1.videoView.release();
     }
 
-    private void playVideo(final VideoViewBinding deactivate, final VideoViewBinding activate) {
-        activate.videoView.start();
-
-        Animation animation = new AlphaAnimation(1, 0);
-        animation.setDuration(ExoPlayerView.DURATION);
-        animation.setAnimationListener(new Animation.AnimationListener() {
-            @Override
-            public void onAnimationStart(Animation animation) {
-            }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
-                binding.container.bringChildToFront(activate.getRoot());
-                deactivate.videoView.pause();
-                deactivate.getRoot().setAlpha(1);
-                loadVideo(deactivate, getVideo());
-
-                binding.loadingView.setVisibility(View.GONE);
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-            }
-        });
-
-        deactivate.getRoot().startAnimation(animation);
+    private void playVideo(final VideoViewBinding videoView) {
+        loadVideo(videoView, getVideo());
+        videoView.videoView.start();
     }
 
     @Override
@@ -139,9 +107,7 @@ public class VideoController implements VideoInteractor.Listener, ExoPlayerView.
 
     @Override
     public void onPrepared(ExoPlayerView view) {
-        if (binding.loadingView.getVisibility() == View.VISIBLE && view == binding.videoView1.videoView) {
-            binding.videoView0.getRoot().setAlpha(1);
-
+        if (binding.loadingView.getVisibility() == View.VISIBLE) {
             Animation animation = new AlphaAnimation(1, 0);
             animation.setDuration(ExoPlayerView.DURATION / 2);
             animation.setAnimationListener(new Animation.AnimationListener() {
@@ -165,10 +131,6 @@ public class VideoController implements VideoInteractor.Listener, ExoPlayerView.
 
     @Override
     public void onAlmostFinished(ExoPlayerView view) {
-        if (view == binding.videoView0.videoView) {
-            playVideo(binding.videoView0, binding.videoView1);
-        } else {
-            playVideo(binding.videoView1, binding.videoView0);
-        }
+        playVideo(binding.videoView0);
     }
 }
