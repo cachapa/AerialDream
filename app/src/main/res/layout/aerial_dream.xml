@@ -36,14 +36,6 @@
             app:showLocation="@{showLocation}"
             app:showProgress="@{showProgress}" />
 
-        <include
-            android:id="@+id/video_view_1"
-            layout="@layout/video_view"
-            app:cacheSize="@{cacheSize}"
-            app:showClock="@{showClock}"
-            app:showLocation="@{showLocation}"
-            app:showProgress="@{showProgress}" />
-
         <TextView
             android:id="@+id/loading_view"
             style="@style/LoadingText"
